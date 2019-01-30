@@ -17,47 +17,15 @@
   # PRCP - Precipitation
   # SNWD - Snow depth
 
-## Load libraries ---------------------------------------------------------------
+## Libraries -------------------------------------------------------------------------
 
+# Load libraries
 library(tidyverse)
 library(lubridate)
 
-## Oshkosh data -----------------------------------------------------------------
+## Ames data -------------------------------------------------------------------------
 
-oshkosh_temp_precip <- read_csv("./ames_oshkosh_weather/data/oshkosh_weather.csv") %>%
-  rename_all(tolower) %>%
-  mutate(date = mdy(date),
-         year = year(date),
-         month = month(date),
-         day = day(date)) %>%
-  filter(month == 1, day == 27) %>%
-  select(name, year:day, tmax:tobs, prcp:snwd) %>%
-  mutate(name = "Oshkosh, WI")
-
-oshkosh_wind <- read_csv("./ames_oshkosh_weather/data/oshkosh_airport_weather.csv") %>%
-  rename_all(tolower) %>%
-  mutate(date = mdy(date),
-         year = year(date),
-         month = month(date),
-         day = day(date)) %>%
-  filter(month == 1, day == 27) %>%
-  select(name, year:day, awnd, wsf5) %>%
-  mutate(name = "Oshkosh, WI") %>%
-  bind_rows(read_csv("./ames_oshkosh_weather/data/oshkosh_airport_weather.csv") %>%
-              rename_all(tolower) %>%
-              mutate(date = mdy(date),
-                     year = year(date),
-                     month = month(date),
-                     day = day(date)) %>%
-              filter(month == 1, day == 26, year == 2019) %>%
-              select(name, year:day, awnd, wsf5) %>%
-              mutate(name = "Oshkosh, WI")) %>%
-  mutate(day = ifelse(day == 26, 27, day))
-
-oshkosh_weather <- full_join(oshkosh_temp_precip, oshkosh_wind, by = c("name", "year", "month", "day"))
-
-## Ames data --------------------------------------------------------------------
-
+# Load in the Ames data and start the cleaning process
 ames <- read_csv("./ames_oshkosh_weather/data/ames_weather.csv") %>%
   rename_all(tolower) %>%
   mutate(date = mdy(date),
@@ -66,49 +34,65 @@ ames <- read_csv("./ames_oshkosh_weather/data/ames_weather.csv") %>%
          day = day(date)) %>%
   select(name, year:day, prcp:snwd, tmax:tobs, wsf5, awnd)
 
+# Extract and clean the data from "AMES 5 SE, IA US" which has temperature and 
+# precipitation variables
 ames_temp_precip <- ames %>%
-  filter(name == "AMES 5 SE, IA US",
-         month == 1, 
-         day == 27) %>%
+  filter(name == "AMES 5 SE, IA US") %>%
   select(name, year:day, tmax:tobs, prcp:snwd) %>%
-  mutate(name = "Ames, IA") %>%
-  bind_rows(ames %>%
-              filter(name %in% c("BOONE, IA US", "AMES 0.9 ENE, IA US"),
-                     month == 1, 
-                     day == 27, 
-                     year == 2019) %>%
-              select(name, year:day, tmax:tobs, prcp:snwd) %>%
-              mutate(snow = ifelse(name == "BOONE, IA US", 1, snow),
-                     snwd = ifelse(name == "BOONE, IA US", 5.5, snwd)) %>%
-              slice(2) %>%
-              mutate(name = "Ames, IA"))
-
-ames_wind <- ames %>%
-  filter(name == "AMES MUNICIPAL AIRPORT, IA US",
-         month == 1, 
-         day == 27) %>%
-  select(name, year:day, awnd, wsf5) %>%
-  bind_rows(ames %>%
-              filter(name == "AMES MUNICIPAL AIRPORT, IA US",
-                     month == 1, 
-                     day == 26, 
-                     year == 2019) %>%
-              select(name, year:day, awnd, wsf5) %>%
-              mutate(day = ifelse(day == 26, 27, day))) %>%
-  mutate(name = "Ames, IA")
-  
-ames_weather <- full_join(ames_temp_precip, ames_wind, by = c("name", "year", "month", "day")) %>%
-  mutate(snwd = as.numeric(snwd),
+  mutate(name = "Ames, IA",
          tmax = as.numeric(tmax),
          tmin = as.numeric(tmin),
          tobs = as.numeric(tobs),
+         snow = as.numeric(snow),
+         snwd = as.numeric(snwd))
+
+# Extract the data from "AMES MUNICIPAL AIRPORT, IA US" which has wind variables
+ames_wind <- ames %>%
+  filter(name == "AMES MUNICIPAL AIRPORT, IA US") %>%
+  select(name, year:day, awnd, wsf5) %>%
+  mutate(name = "Ames, IA",
          awnd = as.numeric(awnd),
          wsf5 = as.numeric(wsf5))
 
-## Join data --------------------------------------------------------------------
+# Join the weather data for Ames
+ames_weather <- full_join(ames_temp_precip, ames_wind, 
+                          by = c("name", "year", "month", "day")) 
 
+## Oshkosh data ----------------------------------------------------------------------
+
+# Clean the dataset with the temperature and precipitation variables for Oshkosh
+oshkosh_temp_precip <- read_csv("./ames_oshkosh_weather/data/oshkosh_weather.csv") %>%
+  rename_all(tolower) %>%
+  mutate(date = mdy(date),
+         year = year(date),
+         month = month(date),
+         day = day(date),
+         name = "Oshkosh, WI") %>%
+  select(name, year:day, tmax:tobs, prcp:snwd)
+
+# Clean the dataset with the wind variables for Oshkosh
+oshkosh_wind <- read_csv("./ames_oshkosh_weather/data/oshkosh_airport_weather.csv") %>%
+  rename_all(tolower) %>%
+  mutate(date = mdy(date),
+         year = year(date),
+         month = month(date),
+         day = day(date),
+         name = "Oshkosh, WI") %>%
+  select(name, year:day, awnd, wsf5)
+
+# Join the weather data for Oshkosh
+oshkosh_weather <- full_join(oshkosh_temp_precip, oshkosh_wind, 
+                             by = c("name", "year", "month", "day"))
+
+## Join Ames and Oshkosh data --------------------------------------------------------
+
+# Join the datasets
 weather <- bind_rows(oshkosh_weather, ames_weather)
 
 # Export the data
-#write.csv(weather, "./ames_oshkosh_weather/data/weather_jan27.csv", row.names = FALSE)
+write.csv(x = weather, 
+          file = "./ames_oshkosh_weather/data/ames_oshkosh_weather.csv", 
+          row.names = FALSE)
+
+
 
