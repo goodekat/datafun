@@ -22,4 +22,4 @@ tornados_cleaned <- tornados %>%
   select(Date, Time, State1:Length, Damage)
 
 # Export the tornado data
-write_csv(tornados_cleaned, "./iowa_tornados/data/iowa_tornado_data_cleaned.csv")
+write.csv(tornados_cleaned, "./iowa_tornados/data/iowa_tornado_data_cleaned.csv", row.names = FALSE)
