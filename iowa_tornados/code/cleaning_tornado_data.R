@@ -17,8 +17,9 @@ tornados <- read_csv("./iowa_tornados/data/iowa_tornado_data.csv")
 # Clean the tornado data
 tornados_cleaned <- tornados %>%
   mutate(Year = year(mdy(Date))) %>%
-  filter(Year %in% c(2000:2017)) %>%
-  select(Date, Time, Segment, State1:Length, Damage)
+  filter(Year %in% c(2000:2017), 
+         Segment != "State") %>%
+  select(Date, Time, State1:Length, Damage)
 
 # Export the tornado data
 write_csv(tornados_cleaned, "./iowa_tornados/data/iowa_tornado_data_cleaned.csv")
