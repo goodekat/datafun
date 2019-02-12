@@ -1,1 +1,1 @@
-This is a repository for me to save example datasets that I create or find.
+This is a repository where I save example datasets that I create or find.
