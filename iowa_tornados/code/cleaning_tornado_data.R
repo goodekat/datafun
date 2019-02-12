@@ -19,7 +19,7 @@ tornados_2000_2017 <- tornados %>%
   mutate(Year = year(mdy(Date))) %>%
   filter(Year %in% c(2000:2017), 
          Segment != "State") %>%
-  select(Date, Time, State1:Length, Damage)
+  select(Date, Time, Fujita:Length, Damage)
 
 # Export the tornado data
-write.csv(tornados_2000_2017, "./iowa_tornados/data/iowa_tornados_2000_2017.csv", row.names = FALSE)
+write_csv(tornados_2000_2017, "./iowa_tornados/data/iowa_tornados_2000_2017.csv")
