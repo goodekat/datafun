@@ -23,3 +23,4 @@ tornadoes_2000_2017 <- tornadoes %>%
 
 # Export the tornado data
 write_csv(tornadoes_2000_2017, "./iowa_tornadoes/data/iowa_tornadoes_2000_2017.csv")
+
